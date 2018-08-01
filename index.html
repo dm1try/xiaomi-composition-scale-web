@@ -1,6 +1,7 @@
 <html>
   <body>
     <div id="info"></div>
+    <button onClick="onButtonMeasure()">measure</button>
     <button title="start" onClick="onButtonTest()">test</button>
     <script>
       function onButtonTest(){
@@ -22,6 +23,36 @@
         })
       }
 
+      function onButtonMeasure() {
+        let serviceUuid = "body_composition";
+        let characteristicUuid = "body_composition_measurement";
+
+        console.log('Requesting Bluetooth Device...');
+        navigator.bluetooth.requestDevice({filters: [{services: [serviceUuid]}]})
+          .then(device => {
+            console.log('Connecting to GATT Server...');
+            return device.gatt.connect();
+          })
+          .then(server => {
+            console.log('Getting Service...');
+            return server.getPrimaryService(serviceUuid);
+          })
+          .then(service => {
+            console.log('Getting Characteristic...');
+            return service.getCharacteristic(characteristicUuid);
+          })
+          .then(characteristic => {
+            myCharacteristic = characteristic;
+            return myCharacteristic.startNotifications().then(_ => {
+              console.log('> Notifications started');
+              myCharacteristic.addEventListener('characteristicvaluechanged',
+                handleNotifications);
+            });
+          })
+          .catch(error => {
+            console.log('Argh! ' + error);
+          });
+      }
       function handleNotifications(event) {
         let value = event.target.value;
         let weight_data = value.getUint16(11, true)
