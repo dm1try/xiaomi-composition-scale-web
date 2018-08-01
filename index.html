@@ -55,12 +55,19 @@
       }
       function handleNotifications(event) {
         let value = event.target.value;
+        let flags = value.getUint16(0, true)
         let weight_data = value.getUint16(11, true)
         // Unit is in kilograms with resolution 0.005. according to specs
         let weight = weight_data * 0.005
 
         let info = document.getElementById("info")
         info.innerHTML = weight.toFixed(3) + " kg";
+
+        if (flags == 0xa602){
+          let impedance = value.getUint16(9, true) // * 0.1;
+          //it looks like xiaomi does not follow the specs for impedance value resolution
+          info.innerHTML += "   |   " + impedance.toFixed(2) + " Om";
+        }
       }
     </script>
   </body>
